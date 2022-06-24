@@ -4,6 +4,7 @@ import matplotlib.animation as animation
 import matplotlib.patches as patches
 import copy
 import random
+import time
 class Map():
     def __init__(self):
         self.mymap = np.zeros((9,9)) #人がいるかどうかのマップ 
@@ -14,12 +15,22 @@ class Human():
         self.y = y
         self.mymap = mymap_con.mymap
         self.ax = ax
+        self.target = False
     
     def move(self):
         past_x,past_y = copy.copy(self.x),copy.copy(self.y)
-        print(self.select_toilet())
-
-        if self.mymap[self.y+1][self.x] == 0 and self.y != 7:
+        if self.y == 3:
+            self.select_toilet() #所定の位置で空いているトイレを探す
+            if self.mymap[self.y+1][self.x] == 0:
+                self.y += 1
+        
+        elif self.target >= 0: #targetが存在するなら
+            self.go_to_target()
+        
+        elif self.target == -1:
+            pass
+        
+        elif self.mymap[self.y+1][self.x] == 0 and self.y != 7:
             self.y += 1
         
 
@@ -32,6 +43,19 @@ class Human():
         c = patches.Circle(xy=(self.ac_posi()), radius=0.5, fc='g', ec='r')
         self.ax.add_patch(c)
     
+    def go_to_target(self):
+
+        if self.x > self.target:
+            self.x -= 1
+            return
+        
+        elif self.x < self.target:
+            self.x += 1
+            return
+        
+        elif self.x == self.target and self.y != 7:
+            self.y += 1
+    
     def select_toilet(self):
         toilets = [0,2,4,6,8]
         null_toilets_list = [0]*len(toilets)
@@ -43,7 +67,7 @@ class Human():
         
         if null_toilets_list.count(True) == len(toilets):
             target_toilet = random.choice(toilets) #トイレが全部空いてたら好きなところに入る
-            return target_toilet #0,2,4,6,8のどれか
+            self.target = target_toilet #0,2,4,6,8のどれか
         
         else: #一個でも使われていたら
             null_toilets_list.insert(0,True) #端っこの比較用に追加
@@ -54,14 +78,9 @@ class Human():
                     target_toilet_candidate.append(j*2)
             if len(target_toilet_candidate) != 0:
                 target_toilet = random.choice(target_toilet_candidate) #トイレ候補が見つかったらランダムで決定
-                return target_toilet
+                self.target = target_toilet
             else:
-                return False
-
-                    
-
-        
-        return target_toilet
+                self.target = -1 #見つからないときはFalse
 
 
     def ac_posi(self):
@@ -92,15 +111,16 @@ def main():
     ax = fig.add_subplot(111)
     mymap_con = Map()
     humans = []
-    humans.append(Human(0,0,mymap_con,ax))
-    humans.append(Human(2,0,mymap_con,ax))
-    humans.append(Human(6,0,mymap_con,ax))
 
+
+    start_time = time.time()
 
     def plot(data):
         ax.cla()
         plot_init(ax)
         set_ax_lim(ax)
+        if int(time.time() - start_time)%10 == 0:
+            humans.append(Human(4,0,mymap_con,ax))
         for h in humans:
             h.move()
 
@@ -110,7 +130,7 @@ def main():
 
 
 
-    ani = animation.FuncAnimation(fig, plot, interval=500,frames=5)
+    ani = animation.FuncAnimation(fig, plot, interval=1000,frames=5)
     ax.tick_params( bottom=False,
                     left=False,
                     right=False,
