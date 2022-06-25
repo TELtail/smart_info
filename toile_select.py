@@ -109,11 +109,12 @@ class Human():
 
         else: #一個でも使われていたら
             null_toilets_list.insert(0,True) #端っこの比較用に追加
-            null_toilets_list.insert(-1,True) #端っこの比較用に追加
+            null_toilets_list.append(True) #端っこの比較用に追加
             target_toilet_candidate = []
-            for j,to in enumerate(null_toilets_list[1:-1]):
-                if (null_toilets_list[j] == True) and (to == True) and (null_toilets_list[j+2] == True): #対象と両隣が空いていたら
-                    target_toilet_candidate.append(j*2)
+            for j in range(1,6):
+                
+                if (null_toilets_list[j-1] == True) and (null_toilets_list[j] == True) and (null_toilets_list[j+1] == True): #対象と両隣が空いていたら
+                    target_toilet_candidate.append(toilets[j-1])
             if len(target_toilet_candidate) != 0:
                 target_toilet = random.choice(target_toilet_candidate) #トイレ候補が見つかったらランダムで決定
                 self.target = target_toilet
@@ -168,7 +169,6 @@ def main():
         for j in delete_humans_list:
             del humans[j]
         
-        print(mymap_con.mymap[::-1])
 
 
         if int(time.time() - start_time)%human_freq == 0:
