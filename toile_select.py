@@ -10,13 +10,13 @@ class Map():
         self.mymap = np.zeros((8,9)) #人がいるかどうかのマップ 
 
 class Human():
-    def __init__(self,x,y,mymap_con,ax,amount):
+    def __init__(self,x,y,mymap_con,ax,amount,limit):
         self.x = x
         self.y = y
         self.mymap = mymap_con.mymap
         self.ax = ax
         self.target = -2 #targetを見つけようともしていない状態
-        self.limit = 30
+        self.limit = limit
         self.amount = amount
         self.delete_flag = False
         self.draw()
@@ -25,7 +25,7 @@ class Human():
         if self.amount > 0 and self.y != 7:
             self.limit -= 1
         past_x,past_y = copy.copy(self.x),copy.copy(self.y)
-        if self.y == 2 and self.amount > 0:
+        if self.y == 3 and self.amount > 0:
             self.select_toilet() #所定の位置で空いているトイレを探す
             if self.mymap[self.y+1][self.x] == 0 and self.target >= 0:
                 self.y += 1
@@ -52,11 +52,15 @@ class Human():
                 self.x += random.choice([-1,1])
             if targeted == 8:
                 self.x -= 1
+        
+
         if self.y < 0:
             self.delete_flag = True
+            self.mymap[past_y][past_x] = 0
 
         if self.y == 7:
             self.amount -= 1 #放尿
+        
         
         if self.delete_flag == False:
             self.mymap[past_y][past_x] = 0
@@ -121,6 +125,7 @@ class Human():
                 self.mymap[7,target_toilet] = 2 #トレイ予約
             else:
                 self.target = -1 #見つからないときは-1
+    
 
 
     def ac_posi(self):
@@ -148,7 +153,8 @@ def set_ax_lim(ax):
 
 def main():
     fig = plt.figure(figsize=(8,8))
-    human_freq = 5
+    human_freq = 4
+    limit = 20
     amount = 5
     ax = fig.add_subplot(111)
     mymap_con = Map()
@@ -166,13 +172,13 @@ def main():
             if h.delete_flag:
                 delete_humans_list.append(i)
         
-        for j in delete_humans_list:
+        for j in reversed(delete_humans_list):
             del humans[j]
         
 
 
-        if int(time.time() - start_time)%human_freq == 0:
-            humans.append(Human(3,0,mymap_con,ax,amount))
+        if int(time.time() - start_time)%human_freq == 0 and mymap_con.mymap[0][4] != 1:
+            humans.append(Human(4,0,mymap_con,ax,amount,limit))
 
 
 
