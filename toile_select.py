@@ -195,13 +195,16 @@ def set_ax_lim(ax):
     ax.set_xlim(0,11.25)
     ax.set_ylim(0,11.25)
     ax.text(0,0.5,"Dead_num: "+str(dead_num),size=15)
-
+    ax.tick_params(labelbottom=False,
+                labelleft=False,
+                labelright=False,
+                labeltop=False)
 
 
 def main():
     fig = plt.figure(figsize=(8,8))
-    human_freq = 4
-    limit = 20
+    human_freq = 10
+    
     amount = 30
     ax = fig.add_subplot(111)
     mymap_con = Map()
@@ -225,18 +228,14 @@ def main():
             del humans[j]
         
 
-
+        limit = random.randint(15,25)
         if int(time.time() - start_time)%human_freq == 0 and mymap_con.mymap[0][4] != 1:
             humans.append(Human(4,0,mymap_con,ax,amount,limit))
 
 
 
-
     ani = animation.FuncAnimation(fig, plot, interval=1000,frames=1000)
-    ax.tick_params( bottom=False,
-                    left=False,
-                    right=False,
-                    top=False)
+    
     plt.show()
 
 if __name__ == "__main__":
