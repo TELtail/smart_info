@@ -10,16 +10,20 @@ class Map():
         self.mymap = np.zeros((9,9)) #人がいるかどうかのマップ 
 
 class Human():
-    def __init__(self,x,y,mymap_con,ax):
+    def __init__(self,x,y,mymap_con,ax,amount):
         self.x = x
         self.y = y
         self.mymap = mymap_con.mymap
         self.ax = ax
-        self.target = False
+        self.target = -2 #targetを見つけようともしていない状態
+        self.limit = 30
+        self.amount = amount
+        self.draw()
     
     def move(self):
+        self.limit -= 1
         past_x,past_y = copy.copy(self.x),copy.copy(self.y)
-        if self.y == 3:
+        if self.y == 2:
             self.select_toilet() #所定の位置で空いているトイレを探す
             if self.mymap[self.y+1][self.x] == 0:
                 self.y += 1
@@ -27,11 +31,15 @@ class Human():
         elif self.target >= 0: #targetが存在するなら
             self.go_to_target()
         
-        elif self.target == -1:
+        elif self.target == -1: #targetを探したが、見つからなかった状態
             pass
         
         elif self.mymap[self.y+1][self.x] == 0 and self.y != 7:
             self.y += 1
+            pass
+
+        if self.y == 7:
+            self.amount -= 1
         
 
         self.mymap[past_y][past_x] = 0
@@ -40,7 +48,16 @@ class Human():
 
     
     def draw(self):
-        c = patches.Circle(xy=(self.ac_posi()), radius=0.5, fc='g', ec='r')
+        if self.limit > 10:
+            fc_color = "g"
+        elif self.limit > 5:
+            fc_color = "y"
+        elif self.limit > 0:
+            fc_color = "r"
+        elif self.limit <= 0:
+            fc_color = "k"
+
+        c = patches.Circle(xy=(self.ac_posi()), radius=0.5, fc=fc_color, ec='r')
         self.ax.add_patch(c)
     
     def go_to_target(self):
@@ -55,6 +72,7 @@ class Human():
         
         elif self.x == self.target and self.y != 7:
             self.y += 1
+            return
     
     def select_toilet(self):
         toilets = [0,2,4,6,8]
@@ -80,7 +98,7 @@ class Human():
                 target_toilet = random.choice(target_toilet_candidate) #トイレ候補が見つかったらランダムで決定
                 self.target = target_toilet
             else:
-                self.target = -1 #見つからないときはFalse
+                self.target = -1 #見つからないときは-1
 
 
     def ac_posi(self):
@@ -108,6 +126,8 @@ def set_ax_lim(ax):
 
 def main():
     fig = plt.figure(figsize=(8,8))
+    human_freq = 10
+    amount = 5
     ax = fig.add_subplot(111)
     mymap_con = Map()
     humans = []
@@ -119,18 +139,16 @@ def main():
         ax.cla()
         plot_init(ax)
         set_ax_lim(ax)
-        if int(time.time() - start_time)%10 == 0:
-            humans.append(Human(4,0,mymap_con,ax))
-        for h in humans:
+        for i,h in enumerate(humans):
             h.move()
 
-        ax.plot(np.random.rand(500))
+        if int(time.time() - start_time)%human_freq == 0:
+            humans.append(Human(3,0,mymap_con,ax,amount))
 
 
 
 
-
-    ani = animation.FuncAnimation(fig, plot, interval=1000,frames=5)
+    ani = animation.FuncAnimation(fig, plot, interval=1000,frames=1000)
     ax.tick_params( bottom=False,
                     left=False,
                     right=False,
