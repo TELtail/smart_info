@@ -18,12 +18,13 @@ class Human():
         self.target = -2 #targetを見つけようともしていない状態
         self.limit = 30
         self.amount = amount
+        self.delete_flag = False
         self.draw()
     
     def move(self):
         self.limit -= 1
         past_x,past_y = copy.copy(self.x),copy.copy(self.y)
-        if self.y == 2:
+        if self.y == 2 and self.amount > 0:
             self.select_toilet() #所定の位置で空いているトイレを探す
             if self.mymap[self.y+1][self.x] == 0:
                 self.y += 1
@@ -33,15 +34,31 @@ class Human():
         
         elif self.target == -1: #targetを探したが、見つからなかった状態
             pass
+
+        elif self.target == -3: #トイレ終了していたら
+            self.y -= 1
         
-        elif self.mymap[self.y+1][self.x] == 0 and self.y != 7:
+        elif self.mymap[self.y+1][self.x] == 0 and self.y != 7: #前に誰もいない、かつトイレの前にいない場合前進
             self.y += 1
-            pass
+
+        if self.amount <= 0 and self.y == 7: #トレイを済ませたら
+            self.limit = 30
+            targeted = copy.copy(self.target)
+            self.target = -3
+            if targeted == 0:
+                self.x += 1
+            if targeted == 2 or targeted == 4 or targeted ==6:
+                self.x += random.choice([-1,1])
+            if targeted == 8:
+                self.x -= 1
+        if self.y < 0:
+            self.delete_flag = True
+
+
 
         if self.y == 7:
             self.amount -= 1
         
-
         self.mymap[past_y][past_x] = 0
         self.mymap[self.y][self.x] = 1
         self.draw()
@@ -132,15 +149,21 @@ def main():
     mymap_con = Map()
     humans = []
 
-
     start_time = time.time()
 
     def plot(data):
+        delete_humans_list = []
         ax.cla()
         plot_init(ax)
         set_ax_lim(ax)
         for i,h in enumerate(humans):
             h.move()
+            if h.delete_flag:
+                delete_humans_list.append(i)
+        
+        for j in delete_humans_list:
+            del humans[j]
+
 
         if int(time.time() - start_time)%human_freq == 0:
             humans.append(Human(3,0,mymap_con,ax,amount))
