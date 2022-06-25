@@ -30,9 +30,14 @@ class Human():
             if self.mymap[self.y+1][self.x] == 0 and self.target >= 0:
                 self.y += 1
         
+        if self.target == -1 and self.mymap[self.y-1][self.x] == 1:
+            self.select_toilet_helplessly()
+            self.y += 1
+        
         elif self.target >= 0: #targetが存在するなら
             self.go_to_target()
-        
+
+
         elif self.target == -1: #targetを探したが、見つからなかった状態
             pass
 
@@ -45,7 +50,7 @@ class Human():
         if self.amount <= 0 and self.y == 7: #トレイを済ませたら
             self.limit = 30
             targeted = copy.copy(self.target)
-            self.target = -3
+            self.target = -3 #トイレを済ませたことを意味する
             if targeted == 0:
                 self.x += 1
             if targeted == 2 or targeted == 4 or targeted ==6:
@@ -126,6 +131,18 @@ class Human():
             else:
                 self.target = -1 #見つからないときは-1
     
+    def select_toilet_helplessly(self):
+        toilets = [0,2,4,6,8]
+        null_toilets = []
+        for i,toil in enumerate(toilets): #空いているトイレを検索
+            if self.mymap[7,toil] == 0:
+                null_toilets.append(toil)
+        if len(null_toilets) != 0:
+            self.target = random.choice(null_toilets)
+            self.mymap[7,self.target] = 2
+        else:
+            self.target = -1
+
 
 
     def ac_posi(self):
@@ -155,7 +172,7 @@ def main():
     fig = plt.figure(figsize=(8,8))
     human_freq = 4
     limit = 20
-    amount = 5
+    amount = 10
     ax = fig.add_subplot(111)
     mymap_con = Map()
     humans = []
@@ -174,6 +191,8 @@ def main():
         
         for j in reversed(delete_humans_list):
             del humans[j]
+        
+        print(mymap_con.mymap[::-1])
         
 
 
