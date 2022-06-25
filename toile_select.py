@@ -19,11 +19,22 @@ class Human():
         self.limit = limit
         self.amount = amount
         self.delete_flag = False
+        self.remain = 0
         self.draw()
     
     def move(self):
         if self.amount > 0 and self.y != 7:
             self.limit -= 1
+        
+        if self.limit <= 0:
+            self.dead_human()
+            if self.remain == 1:
+                self.mymap[self.y][self.x] = 0
+                self.mymap[7,self.target] = 0
+            return
+        
+
+
         past_x,past_y = copy.copy(self.x),copy.copy(self.y)
         if self.y == 3 and self.amount > 0:
             self.select_toilet() #所定の位置で空いているトイレを探す
@@ -32,7 +43,8 @@ class Human():
         
         if self.target == -1 and self.mymap[self.y-1][self.x] == 1:
             self.select_toilet_helplessly()
-            self.y += 1
+            if self.target >=0:
+                self.y += 1
         
         elif self.target >= 0: #targetが存在するなら
             self.go_to_target()
@@ -66,6 +78,8 @@ class Human():
         if self.y == 7:
             self.amount -= 1 #放尿
         
+
+        
         
         if self.delete_flag == False:
             self.mymap[past_y][past_x] = 0
@@ -86,7 +100,8 @@ class Human():
             fc_color = "k"
 
         c = patches.Circle(xy=(self.ac_posi()), radius=0.5, fc=fc_color)
-        self.ax.add_patch(c)
+        self.ax.add_patch(c) #人間の描画
+        self.ax.text(self.txt_posi()[0],self.txt_posi()[1],self.limit,size=15) #文字の描画
     
     def go_to_target(self):
 
@@ -143,11 +158,25 @@ class Human():
         else:
             self.target = -1
 
+    def dead_human(self):
+        self.remain += 1
+        c = patches.Circle(xy=(self.ac_posi()), radius=0.5-self.remain*0.1, fc="k")
+        self.ax.add_patch(c) #人間の描画
+        if self.remain == 3:
+            self.delete_flag = True
+            global dead_num
+            dead_num += 1
+
 
 
     def ac_posi(self):
         act_x = float(self.x)*1.25 + 0.625
         act_y = float(self.y)*1.25 + 0.625
+        return (act_x,act_y)
+    
+    def txt_posi(self):
+        act_x = float(self.x)*1.25 + 0.45
+        act_y = float(self.y)*1.25 + 0.45
         return (act_x,act_y)
 
 
@@ -165,6 +194,7 @@ def set_ax_lim(ax):
     ax.set_yticks(np.linspace(0,11.25,10))
     ax.set_xlim(0,11.25)
     ax.set_ylim(0,11.25)
+    ax.text(0,0.5,"Dead_num: "+str(dead_num),size=15)
 
 
 
@@ -172,10 +202,12 @@ def main():
     fig = plt.figure(figsize=(8,8))
     human_freq = 4
     limit = 20
-    amount = 10
+    amount = 30
     ax = fig.add_subplot(111)
     mymap_con = Map()
     humans = []
+    global dead_num
+    dead_num = 0
 
     start_time = time.time()
 
@@ -191,8 +223,6 @@ def main():
         
         for j in reversed(delete_humans_list):
             del humans[j]
-        
-        print(mymap_con.mymap[::-1])
         
 
 
