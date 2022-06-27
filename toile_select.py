@@ -203,18 +203,20 @@ def set_ax_lim(ax):
 
 def main():
     fig = plt.figure(figsize=(8,8))
-    human_freq = 10
+    human_freq = 3
     
-    amount = 30
+    amount = 20
     ax = fig.add_subplot(111)
     mymap_con = Map()
     humans = []
     global dead_num
     dead_num = 0
-
-    start_time = time.time()
+    global time_freq
+    time_freq=0
 
     def plot(data):
+        global time_freq
+        time_freq += 1
         delete_humans_list = []
         ax.cla()
         plot_init(ax)
@@ -228,14 +230,15 @@ def main():
             del humans[j]
         
 
-        limit = random.randint(15,25)
-        if int(time.time() - start_time)%human_freq == 0 and mymap_con.mymap[0][4] != 1:
+        limit = random.randint(10,25)
+        amount = random.randint(15,25)
+        if int(time_freq)%human_freq == 0 and mymap_con.mymap[0][4] != 1:
             humans.append(Human(4,0,mymap_con,ax,amount,limit))
 
 
 
     ani = animation.FuncAnimation(fig, plot, interval=1000,frames=1000)
-    
+    ani.save("plot17.mp4",writer="ffmpeg",dpi=500)
     plt.show()
 
 if __name__ == "__main__":
